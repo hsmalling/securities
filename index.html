@@ -142,8 +142,8 @@
   #search::placeholder { color: var(--dim); }
 
   /* ── Table ── */
-  .table-wrap { overflow-x: auto; padding: 0 32px 48px; }
-  table { width: 100%; border-collapse: collapse; }
+  .table-wrap { padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0 32px; width: calc(100% - 64px); }
   thead th {
     font-family: var(--mono);
     font-size: 12px;
@@ -158,7 +158,7 @@
     user-select: none;
     white-space: nowrap;
     position: sticky;
-    top: var(--controls-h, 0px);
+    top: 0;
     background: var(--bg);
     z-index: 2;
   }
@@ -289,6 +289,13 @@
   }
   .controls::-webkit-scrollbar { width: 4px; }
   .controls::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── Table wrapper: own scroll zone so thead sticky works ── */
+  .table-wrap {
+    overflow: auto;
+    height: calc(100vh - var(--controls-h, 220px) - var(--pagination-h, 70px));
+    min-height: 200px;
+  }
 
   /* ── Collapsible section titles ── */
   .section-title {
@@ -2376,23 +2383,17 @@
   applyFilters();
 
 
-  // ── Sticky table header offset ────────────────────────────────────────────
-  // Keep thead top aligned just below the sticky controls panel
-  function updateControlsHeight() {
-    var controls = document.querySelector('.controls');
-    if (controls) {
-      var h = controls.getBoundingClientRect().height;
-      document.documentElement.style.setProperty('--controls-h', h + 'px');
-    }
+  // ── Dynamic table-wrap height: fills viewport below controls + above pagination ──
+  function updateLayout() {
+    var controls   = document.querySelector('.controls');
+    var pagination = document.getElementById('pagination');
+    var ch = controls   ? controls.getBoundingClientRect().height   : 220;
+    var ph = pagination ? pagination.getBoundingClientRect().height  : 70;
+    document.documentElement.style.setProperty('--controls-h',   ch + 'px');
+    document.documentElement.style.setProperty('--pagination-h', ph + 'px');
   }
-  updateControlsHeight();
-  window.addEventListener('resize', updateControlsHeight);
-  // Also update when sections are collapsed/expanded (height changes)
-  document.querySelectorAll('.section-title').forEach(function(t) {
-    t.addEventListener('click', function() {
-      setTimeout(updateControlsHeight, 300); // after transition
-    });
-  });
+  updateLayout();
+  window.addEventListener('resize', updateLayout);
 
   // ── Collapsible sections ─────────────────────────────────────────────────
   document.querySelectorAll('.section-title').forEach(function(title) {
