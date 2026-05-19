@@ -158,9 +158,9 @@
     user-select: none;
     white-space: nowrap;
     position: sticky;
-    top: 0;
+    top: var(--controls-h, 0px);
     background: var(--bg);
-    z-index: 1;
+    z-index: 2;
   }
   thead th:hover { color: var(--accent); }
   thead th.sig-col { text-align: center; }
@@ -2374,6 +2374,25 @@
   });
 
   applyFilters();
+
+
+  // ── Sticky table header offset ────────────────────────────────────────────
+  // Keep thead top aligned just below the sticky controls panel
+  function updateControlsHeight() {
+    var controls = document.querySelector('.controls');
+    if (controls) {
+      var h = controls.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--controls-h', h + 'px');
+    }
+  }
+  updateControlsHeight();
+  window.addEventListener('resize', updateControlsHeight);
+  // Also update when sections are collapsed/expanded (height changes)
+  document.querySelectorAll('.section-title').forEach(function(t) {
+    t.addEventListener('click', function() {
+      setTimeout(updateControlsHeight, 300); // after transition
+    });
+  });
 
   // ── Collapsible sections ─────────────────────────────────────────────────
   document.querySelectorAll('.section-title').forEach(function(title) {
