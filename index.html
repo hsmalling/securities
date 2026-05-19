@@ -142,7 +142,7 @@
   #search::placeholder { color: var(--dim); }
 
   /* ── Table ── */
-  .table-wrap { padding: 0; }
+  .table-wrap { overflow-x: auto; padding: 0 32px 48px; }
   table { width: 100%; border-collapse: collapse; margin: 0 32px; width: calc(100% - 64px); }
   thead th {
     font-family: var(--mono);
@@ -157,10 +157,7 @@
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
-    position: sticky;
-    top: 0;
     background: var(--bg);
-    z-index: 2;
   }
   thead th:hover { color: var(--accent); }
   thead th.sig-col { text-align: center; }
@@ -170,7 +167,6 @@
 
   tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
   tbody tr:hover { background: var(--surface); }
-  tbody tr.hidden { display: none; }
 
   td { padding: 8px 10px; vertical-align: middle; }
   td a { font-family: var(--mono); font-weight: 600; font-size: 13px; color: var(--accent); text-decoration: none; }
@@ -289,15 +285,7 @@
   }
   .controls::-webkit-scrollbar { width: 4px; }
   .controls::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  /* ── Table wrapper: own scroll zone so thead sticky works ── */
-  .table-wrap {
-    overflow: auto;
-    height: calc(100vh - var(--controls-h, 220px) - var(--pagination-h, 70px));
-    min-height: 200px;
-  }
-
-  /* ── Collapsible section titles ── */
+/* ── Collapsible section titles ── */
   .section-title {
     cursor: pointer;
     display: flex;
@@ -2198,97 +2186,137 @@
 
 <script>
 (function() {
-  const tbody       = document.getElementById('screener-body');
-  const allRows     = Array.from(tbody.querySelectorAll('tr'));
-  const searchInput = document.getElementById('search');
-  const noResults   = document.getElementById('no-results');
-  const countEl     = document.getElementById('visible-count');
+  var tbody       = document.getElementById('screener-body');
+  var allRows     = Array.from(tbody.querySelectorAll('tr'));
+  var searchInput = document.getElementById('search');
+  var noResults   = document.getElementById('no-results');
+  var countEl     = document.getElementById('visible-count');
+  var SIG_KEYS    = ['today', 'week', 'd5', 'month', 'm6', 'ytd', 'last_year'];
 
-  const SIG_KEYS = ['today', 'week', 'd5', 'month', 'm6', 'ytd', 'last_year'];
+  var activeQt = 'ALL', activeSrc = 'ALL', activeSetup = 'ALL', activeConf = 'ALL';
+  var activeSig = {};
+  SIG_KEYS.forEach(function(k) { activeSig[k] = 'ALL'; });
 
-  // Active filter state
-  let activeQt    = 'ALL';
-  let activeSrc   = 'ALL';
-  let activeSetup = 'ALL';
-  let activeConf  = 'ALL';
-  const activeSig = {};
-  SIG_KEYS.forEach(k => activeSig[k] = 'ALL');
-
-  // Helper — getAttribute is unambiguous; dataset camelCase conversion
-  // is inconsistent across browsers and mobile webviews.
   function attr(el, name) { return el.getAttribute(name) || ''; }
 
-  // ── Apply all filters ────────────────────────────────────────────────────
-  function applyFilters() {
-    const q = searchInput.value.trim().toLowerCase();
-    let visible = 0;
+  // ── Single source of truth for visibility ────────────────────────────────
+  // applyFilters marks each row with data-match="1" or "0".
+  // renderPage reads data-match and decides style.display.
+  // No CSS 'hidden' class involved — avoids priority conflicts.
 
-    allRows.forEach(row => {
-      const passQt    = activeQt    === 'ALL' || attr(row,'data-qt')    === activeQt;
-      const passSrc   = activeSrc   === 'ALL' || attr(row,'data-src')   === activeSrc;
-      const passSetup = activeSetup === 'ALL' || attr(row,'data-setup') === activeSetup;
-      const passConf  = activeConf  === 'ALL' || attr(row,'data-conf')  === activeConf;
-      const passQ     = !q || row.textContent.toLowerCase().includes(q);
-      const passSig   = SIG_KEYS.every(k => {
-        const want = activeSig[k];
+  function applyFilters() {
+    var q = searchInput.value.trim().toLowerCase();
+    var matched = 0;
+
+    allRows.forEach(function(row) {
+      var passQt    = activeQt    === 'ALL' || attr(row,'data-qt')    === activeQt;
+      var passSrc   = activeSrc   === 'ALL' || attr(row,'data-src')   === activeSrc;
+      var passSetup = activeSetup === 'ALL' || attr(row,'data-setup') === activeSetup;
+      var passConf  = activeConf  === 'ALL' || attr(row,'data-conf')  === activeConf;
+      var passQ     = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+      var passSig   = SIG_KEYS.every(function(k) {
+        var want = activeSig[k];
         if (want === 'ALL') return true;
         return (attr(row, 'data-sig-' + k) || 'AVOID') === want;
       });
 
-      if (passQt && passSrc && passSetup && passConf && passQ && passSig) {
-        row.classList.remove('hidden');
-        visible++;
-      } else {
-        row.classList.add('hidden');
-      }
+      var match = passQt && passSrc && passSetup && passConf && passQ && passSig;
+      row.setAttribute('data-match', match ? '1' : '0');
+      if (match) matched++;
     });
 
-    countEl.textContent = visible;
-    noResults.style.display = visible === 0 ? 'block' : 'none';
+    countEl.textContent = matched;
     var statusEl = document.getElementById('filter-status');
-    if (statusEl) statusEl.textContent = visible + ' symbols shown';
+    if (statusEl) statusEl.textContent = matched + ' symbols shown';
+
+    currentPage = 1;
+    renderPage();
   }
 
-  // ── Column sort ──────────────────────────────────────────────────────────
-  let sortCol = null, sortDir = 1;
+  // ── Pagination ────────────────────────────────────────────────────────────
+  var currentPage = 1;
+  var pageSize    = 100;
 
-  const COL_IDX = {
+  function getMatchedRows() {
+    return allRows.filter(function(r) { return r.getAttribute('data-match') === '1'; });
+  }
+
+  function renderPage() {
+    var matched = getMatchedRows();
+    var total   = matched.length;
+    var pages   = Math.max(1, Math.ceil(total / pageSize));
+    currentPage = Math.min(currentPage, pages);
+    var start   = (currentPage - 1) * pageSize;
+    var end     = Math.min(start + pageSize, total);
+
+    // Single pass — set display on every row
+    allRows.forEach(function(r) {
+      var isMatch = r.getAttribute('data-match') === '1';
+      if (!isMatch) { r.style.display = 'none'; return; }
+      var idx = matched.indexOf(r);
+      r.style.display = (idx >= start && idx < end) ? '' : 'none';
+    });
+
+    noResults.style.display = total === 0 ? 'block' : 'none';
+
+    var info = document.getElementById('page-info');
+    if (info) {
+      info.textContent = total === 0
+        ? 'No results'
+        : (start + 1) + '–' + end + ' of ' + total;
+    }
+
+    var btnFirst = document.getElementById('btn-first');
+    var btnPrev  = document.getElementById('btn-prev');
+    var btnNext  = document.getElementById('btn-next');
+    var btnLast  = document.getElementById('btn-last');
+    if (btnFirst) btnFirst.disabled = currentPage <= 1;
+    if (btnPrev)  btnPrev.disabled  = currentPage <= 1;
+    if (btnNext)  btnNext.disabled  = currentPage >= pages;
+    if (btnLast)  btnLast.disabled  = currentPage >= pages;
+  }
+
+  function scrollToTable() {
+    var tbl = document.getElementById('screener-table');
+    if (tbl) tbl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Sort ──────────────────────────────────────────────────────────────────
+  var sortCol = null, sortDir = 1;
+
+  var COL_IDX = {
     ticker:0, label:1, quote_type:2, source:3, setup:4, confidence:5,
     price:6, market_cap:7, dollar_vol:8, atr_pct:9,
     rsi:10, above_ma200:11, ma_aligned:12, macd:13, vol_ratio:14, structure:15, entry_long:16,
     today:17, week:18, d5:19, month:20, m6:21, ytd:22, last_year:23
   };
 
-  const SIG_ORDER  = { BUY:0, AVOID:1, SELL:2 };
-  const CONF_ORDER = { HIGH:0, MED:1, LOW:2 };
-
-  const SETUP_ORDER = {
-    momentum_bull:0, momentum_bear:1,
-    trend_bull:2,    trend_bear:3,
-    pullback_bull:4, pullback_bear:5,
-    breakout_bull:6, breakout_bear:7,
-    accumulation:8,  distribution:9,
-    mean_rev_bull:10,mean_rev_bear:11,
-    recovery_bull:12,recovery_bear:13,
-    none:14
+  var SIG_ORDER   = { BUY:0, AVOID:1, SELL:2 };
+  var CONF_ORDER  = { HIGH:0, MED:1, LOW:2 };
+  var SETUP_ORDER = {
+    momentum_bull:0, momentum_bear:1, trend_bull:2,  trend_bear:3,
+    pullback_bull:4, pullback_bear:5, breakout_bull:6,breakout_bear:7,
+    accumulation:8,  distribution:9,  mean_rev_bull:10,mean_rev_bear:11,
+    recovery_bull:12,recovery_bear:13,none:14
   };
 
   function parseCell(row, col) {
-    const idx = COL_IDX[col];
+    var idx = COL_IDX[col];
     if (idx === undefined) return '';
-    const raw = (row.querySelectorAll('td')[idx] ? row.querySelectorAll('td')[idx].textContent.trim() : '') || '';
+    var cells = row.querySelectorAll('td');
+    var raw = cells[idx] ? cells[idx].textContent.trim() : '';
     if (raw === '—' || raw === '') return null;
-    if (col === 'setup')      return SETUP_ORDER[attr(row,'data-setup')] !== undefined ? SETUP_ORDER[attr(row,'data-setup')] : 14;
-    if (col === 'confidence') return CONF_ORDER[attr(row,'data-conf')]   !== undefined ? CONF_ORDER[attr(row,'data-conf')]   : 3;
-    if (SIG_KEYS.indexOf(col) !== -1) return SIG_ORDER[raw] !== undefined ? SIG_ORDER[raw] : 1;
+    if (col === 'setup')      { var s = SETUP_ORDER[attr(row,'data-setup')]; return s !== undefined ? s : 14; }
+    if (col === 'confidence') { var c = CONF_ORDER[attr(row,'data-conf')];   return c !== undefined ? c : 3;  }
+    if (SIG_KEYS.indexOf(col) !== -1) { var sv = SIG_ORDER[raw]; return sv !== undefined ? sv : 1; }
     if (col === 'above_ma200' || col === 'ma_aligned') return raw === '✓' ? 0 : 1;
     if (col === 'structure')  return raw === 'HH+HL' ? 0 : (raw === 'HH' || raw === 'HL') ? 1 : 2;
     if (col === 'macd')       return raw.indexOf('Cross') !== -1 ? 0 : raw === 'Bull' ? 1 : raw === 'Bear' ? 2 : 3;
-    var num = parseFloat(raw.replace(/[$%,×]/g,''));
+    var num = parseFloat(raw.replace(/[$%,×]/g, ''));
     if (!isNaN(num)) {
       var m = raw.match(/([BMKT])$/i);
-      if (m) { var mult={B:1e9,M:1e6,K:1e3,T:1e12}[m[1].toUpperCase()]; return num*(mult||1); }
-      if (raw.indexOf('%') !== -1) return num/100;
+      if (m) { var mult = {B:1e9,M:1e6,K:1e3,T:1e12}[m[1].toUpperCase()]; return num * (mult || 1); }
+      if (raw.indexOf('%') !== -1) return num / 100;
       return num;
     }
     return raw.toLowerCase();
@@ -2301,8 +2329,8 @@
       sortCol = col;
       document.querySelectorAll('thead th').forEach(function(t) { t.classList.remove('asc','desc'); });
       th.classList.add(sortDir === 1 ? 'asc' : 'desc');
-      var sorted = allRows.slice().sort(function(a,b) {
-        var va = parseCell(a,col), vb = parseCell(b,col);
+      var sorted = allRows.slice().sort(function(a, b) {
+        var va = parseCell(a, col), vb = parseCell(b, col);
         if (va === null) return 1; if (vb === null) return -1;
         return va < vb ? -sortDir : va > vb ? sortDir : 0;
       });
@@ -2311,63 +2339,46 @@
     });
   });
 
-  // ── Type buttons ─────────────────────────────────────────────────────────
+  // ── Filter buttons ────────────────────────────────────────────────────────
   document.querySelectorAll('.btn[data-filter-qt]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.btn[data-filter-qt]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      activeQt = btn.getAttribute('data-filter-qt');
-      applyFilters();
+      btn.classList.add('active'); activeQt = btn.getAttribute('data-filter-qt'); applyFilters();
     });
   });
-
-  // ── Source buttons ────────────────────────────────────────────────────────
   document.querySelectorAll('.btn[data-filter-src]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.btn[data-filter-src]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      activeSrc = btn.getAttribute('data-filter-src');
-      applyFilters();
+      btn.classList.add('active'); activeSrc = btn.getAttribute('data-filter-src'); applyFilters();
     });
   });
-
-  // ── Setup filter buttons ─────────────────────────────────────────────────
   document.querySelectorAll('.btn[data-filter-setup]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.btn[data-filter-setup]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      activeSetup = btn.getAttribute('data-filter-setup');
-      applyFilters();
+      btn.classList.add('active'); activeSetup = btn.getAttribute('data-filter-setup'); applyFilters();
     });
   });
-
-  // ── Confidence buttons ────────────────────────────────────────────────────
   document.querySelectorAll('.btn[data-filter-conf]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.btn[data-filter-conf]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      activeConf = btn.getAttribute('data-filter-conf');
-      applyFilters();
+      btn.classList.add('active'); activeConf = btn.getAttribute('data-filter-conf'); applyFilters();
     });
   });
-
-  // ── Signal buttons ────────────────────────────────────────────────────────
   document.querySelectorAll('.sig-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var key = btn.getAttribute('data-sig-key');
       var val = btn.getAttribute('data-sig-val');
-      document.querySelectorAll('.sig-btn[data-sig-key="' + key + '"]')
-        .forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      activeSig[key] = val;
-      applyFilters();
+      document.querySelectorAll('.sig-btn[data-sig-key="' + key + '"]').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active'); activeSig[key] = val; applyFilters();
     });
   });
 
-  // ── Search ────────────────────────────────────────────────────────────────
-  searchInput.addEventListener('input', applyFilters);
+  searchInput.addEventListener('input', function() {
+    applyFilters();
+    // Scroll to table so headers are visible when search results appear
+    scrollToTable();
+  });
 
-  // ── Reset ─────────────────────────────────────────────────────────────────
   document.getElementById('reset-btn').addEventListener('click', function() {
     activeQt = 'ALL'; activeSrc = 'ALL'; activeSetup = 'ALL'; activeConf = 'ALL';
     SIG_KEYS.forEach(function(k) { activeSig[k] = 'ALL'; });
@@ -2380,22 +2391,18 @@
     applyFilters();
   });
 
-  applyFilters();
+  // ── Pagination buttons ────────────────────────────────────────────────────
+  document.getElementById('btn-first').addEventListener('click', function() { currentPage = 1; renderPage(); scrollToTable(); });
+  document.getElementById('btn-prev').addEventListener('click',  function() { if (currentPage > 1) currentPage--; renderPage(); scrollToTable(); });
+  document.getElementById('btn-next').addEventListener('click',  function() { currentPage++; renderPage(); scrollToTable(); });
+  document.getElementById('btn-last').addEventListener('click',  function() {
+    currentPage = Math.ceil(getMatchedRows().length / pageSize); renderPage(); scrollToTable();
+  });
+  document.getElementById('page-size-select').addEventListener('change', function() {
+    pageSize = parseInt(this.value, 10); currentPage = 1; renderPage();
+  });
 
-
-  // ── Dynamic table-wrap height: fills viewport below controls + above pagination ──
-  function updateLayout() {
-    var controls   = document.querySelector('.controls');
-    var pagination = document.getElementById('pagination');
-    var ch = controls   ? controls.getBoundingClientRect().height   : 220;
-    var ph = pagination ? pagination.getBoundingClientRect().height  : 70;
-    document.documentElement.style.setProperty('--controls-h',   ch + 'px');
-    document.documentElement.style.setProperty('--pagination-h', ph + 'px');
-  }
-  updateLayout();
-  window.addEventListener('resize', updateLayout);
-
-  // ── Collapsible sections ─────────────────────────────────────────────────
+  // ── Collapsible sections ──────────────────────────────────────────────────
   document.querySelectorAll('.section-title').forEach(function(title) {
     var body = title.nextElementSibling;
     if (!body || !body.classList.contains('section-body')) return;
@@ -2413,83 +2420,8 @@
     });
   });
 
-  // ── Pagination ────────────────────────────────────────────────────────────
-  var currentPage = 1;
-  var pageSize    = 100;
-
-  function getVisibleRows() {
-    return allRows.filter(function(r) { return !r.classList.contains('hidden'); });
-  }
-
-  function renderPage() {
-    var visible  = getVisibleRows();
-    var total    = visible.length;
-    var pages    = Math.max(1, Math.ceil(total / pageSize));
-    currentPage  = Math.min(currentPage, pages);
-    var start    = (currentPage - 1) * pageSize;
-    var end      = Math.min(start + pageSize, total);
-
-    // Show/hide rows based on current page
-    allRows.forEach(function(r) {
-      if (r.classList.contains('hidden')) return; // already filtered out
-      var idx = visible.indexOf(r);
-      r.style.display = (idx >= start && idx < end) ? '' : 'none';
-    });
-
-    // Update pagination info
-    var info = document.getElementById('page-info');
-    if (info) {
-      info.textContent = total === 0
-        ? 'No results'
-        : (start + 1) + '–' + end + ' of ' + total;
-    }
-
-    // Button states
-    var btnFirst = document.getElementById('btn-first');
-    var btnPrev  = document.getElementById('btn-prev');
-    var btnNext  = document.getElementById('btn-next');
-    var btnLast  = document.getElementById('btn-last');
-    if (btnFirst) btnFirst.disabled = currentPage <= 1;
-    if (btnPrev)  btnPrev.disabled  = currentPage <= 1;
-    if (btnNext)  btnNext.disabled  = currentPage >= pages;
-    if (btnLast)  btnLast.disabled  = currentPage >= pages;
-  }
-
-  // Override applyFilters to reset to page 1 and re-paginate
-  var _origApply = applyFilters;
-  applyFilters = function() {
-    _origApply();
-    currentPage = 1;
-    renderPage();
-  };
-
-  // Pagination button handlers
-  document.getElementById('btn-first').addEventListener('click', function() {
-    currentPage = 1; renderPage();
-    document.getElementById('screener-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  document.getElementById('btn-prev').addEventListener('click', function() {
-    if (currentPage > 1) { currentPage--; renderPage(); }
-    document.getElementById('screener-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  document.getElementById('btn-next').addEventListener('click', function() {
-    currentPage++; renderPage();
-    document.getElementById('screener-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  document.getElementById('btn-last').addEventListener('click', function() {
-    currentPage = Math.ceil(getVisibleRows().length / pageSize);
-    renderPage();
-    document.getElementById('screener-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  document.getElementById('page-size-select').addEventListener('change', function() {
-    pageSize    = parseInt(this.value, 10);
-    currentPage = 1;
-    renderPage();
-  });
-
-  // Initial render
-  renderPage();
-
+  // ── Init ──────────────────────────────────────────────────────────────────
+  applyFilters();
 })();
 </script>
 </body>
