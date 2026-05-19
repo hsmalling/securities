@@ -275,6 +275,89 @@
   @media (forced-colors: active) {
     .sig, .badge, .setup, .conf { border:1px solid ButtonText !important; }
   }
+
+  /* ── Sticky controls ── */
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+    max-height: 55vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .controls::-webkit-scrollbar { width: 4px; }
+  .controls::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── Collapsible section titles ── */
+  .section-title {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+  }
+  .section-title::after {
+    content: '▲';
+    font-size: 10px;
+    opacity: 0.5;
+    transition: transform .2s;
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+  .section-title.collapsed::after {
+    transform: rotate(180deg);
+  }
+  .section-body {
+    overflow: hidden;
+    transition: max-height .25s ease, opacity .2s ease;
+    max-height: 600px;
+    opacity: 1;
+  }
+  .section-body.collapsed {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  /* ── Pagination ── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 32px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .pagination button {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 14px;
+    min-height: 40px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .pagination button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .pagination button:disabled { opacity: 0.3; cursor: default; }
+  .pagination button.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .pagination .page-info { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+  .page-size-select {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    min-height: 40px;
+  }
+  .page-size-select:focus { outline: 2px solid var(--accent); }
 </style>
 </head>
 <body>
@@ -293,6 +376,7 @@
   <!-- Asset type + source -->
   <div class="controls-section">
     <div class="section-title" id="lbl-asset">Asset Filters</div>
+    <div class="section-body">
     <div class="control-row">
       <span class="control-label">Type</span>
       <button class="btn active" data-filter-qt="ALL">All Types</button>
@@ -315,12 +399,13 @@
 <button class="btn" data-filter-src="S&P 500">S&P 500</button>
 
     </div>
-  </div>
+    </div>  </div>
 
 
   <!-- Setup filters -->
   <div class="controls-section">
     <div class="section-title" id="lbl-setup">Setup &amp; Confidence Filter</div>
+    <div class="section-body">
     <div class="control-row">
       <span class="control-label">Pattern</span>
       <button class="btn active" data-filter-setup="ALL">All</button>
@@ -346,11 +431,12 @@
       <button class="btn conf-med-btn"  data-filter-conf="MED">MED</button>
       <button class="btn conf-low-btn"  data-filter-conf="LOW">LOW</button>
     </div>
-  </div>
+    </div>  </div>
 
   <!-- Signal filters -->
   <div class="controls-section">
     <div class="section-title" id="lbl-signals">Signal Filters — AND logic across all rows</div>
+    <div class="section-body">
     <div class="control-row"><span class="control-label sig-label">Today</span><button class="btn sig-btn active" data-sig-key="today" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="today" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="today" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="today" data-sig-val="AVOID">AVOID</button></div>
 <div class="control-row"><span class="control-label sig-label">This Wk</span><button class="btn sig-btn active" data-sig-key="week" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="week" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="week" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="week" data-sig-val="AVOID">AVOID</button></div>
 <div class="control-row"><span class="control-label sig-label">5 Days</span><button class="btn sig-btn active" data-sig-key="d5" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="d5" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="d5" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="d5" data-sig-val="AVOID">AVOID</button></div>
@@ -358,7 +444,7 @@
 <div class="control-row"><span class="control-label sig-label">6 Months</span><button class="btn sig-btn active" data-sig-key="m6" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="m6" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="m6" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="m6" data-sig-val="AVOID">AVOID</button></div>
 <div class="control-row"><span class="control-label sig-label">YTD</span><button class="btn sig-btn active" data-sig-key="ytd" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="ytd" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="ytd" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="ytd" data-sig-val="AVOID">AVOID</button></div>
 <div class="control-row"><span class="control-label sig-label">1 Year</span><button class="btn sig-btn active" data-sig-key="last_year" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="last_year" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="last_year" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="last_year" data-sig-val="AVOID">AVOID</button></div>
-
+    </div>
   </div>
 
   <!-- Search + reset -->
@@ -2082,6 +2168,22 @@
 </div>
 </main>
 
+<div class="pagination" id="pagination" role="navigation" aria-label="Results pagination">
+  <label for="page-size-select" class="sr-only">Rows per page</label>
+  <select id="page-size-select" class="page-size-select" aria-label="Rows per page">
+    <option value="50">50 / page</option>
+    <option value="100" selected>100 / page</option>
+    <option value="250">250 / page</option>
+    <option value="999999">All</option>
+  </select>
+  <button id="btn-first"  aria-label="First page"    title="First">&#171;</button>
+  <button id="btn-prev"   aria-label="Previous page" title="Previous">&#8249;</button>
+  <span class="page-info" id="page-info" aria-live="polite"></span>
+  <button id="btn-next"   aria-label="Next page"     title="Next">&#8250;</button>
+  <button id="btn-last"   aria-label="Last page"     title="Last">&#187;</button>
+</div>
+
+
 <footer>
   Yahoo Finance data · Liquidity: $50M avg $vol · Volatility: 3% ATR (20d) ·
   Signals: close &gt; open → BUY · close &lt; open → SELL · else → AVOID · 1Yr = open 365 days ago vs today · Non-equity assets unfiltered
@@ -2272,6 +2374,102 @@
   });
 
   applyFilters();
+
+  // ── Collapsible sections ─────────────────────────────────────────────────
+  document.querySelectorAll('.section-title').forEach(function(title) {
+    var body = title.nextElementSibling;
+    if (!body || !body.classList.contains('section-body')) return;
+    title.setAttribute('role', 'button');
+    title.setAttribute('tabindex', '0');
+    title.setAttribute('aria-expanded', 'true');
+    function toggle() {
+      var collapsed = body.classList.toggle('collapsed');
+      title.classList.toggle('collapsed', collapsed);
+      title.setAttribute('aria-expanded', String(!collapsed));
+    }
+    title.addEventListener('click', toggle);
+    title.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+
+  // ── Pagination ────────────────────────────────────────────────────────────
+  var currentPage = 1;
+  var pageSize    = 100;
+
+  function getVisibleRows() {
+    return allRows.filter(function(r) { return !r.classList.contains('hidden'); });
+  }
+
+  function renderPage() {
+    var visible  = getVisibleRows();
+    var total    = visible.length;
+    var pages    = Math.max(1, Math.ceil(total / pageSize));
+    currentPage  = Math.min(currentPage, pages);
+    var start    = (currentPage - 1) * pageSize;
+    var end      = Math.min(start + pageSize, total);
+
+    // Show/hide rows based on current page
+    allRows.forEach(function(r) {
+      if (r.classList.contains('hidden')) return; // already filtered out
+      var idx = visible.indexOf(r);
+      r.style.display = (idx >= start && idx < end) ? '' : 'none';
+    });
+
+    // Update pagination info
+    var info = document.getElementById('page-info');
+    if (info) {
+      info.textContent = total === 0
+        ? 'No results'
+        : (start + 1) + '–' + end + ' of ' + total;
+    }
+
+    // Button states
+    var btnFirst = document.getElementById('btn-first');
+    var btnPrev  = document.getElementById('btn-prev');
+    var btnNext  = document.getElementById('btn-next');
+    var btnLast  = document.getElementById('btn-last');
+    if (btnFirst) btnFirst.disabled = currentPage <= 1;
+    if (btnPrev)  btnPrev.disabled  = currentPage <= 1;
+    if (btnNext)  btnNext.disabled  = currentPage >= pages;
+    if (btnLast)  btnLast.disabled  = currentPage >= pages;
+  }
+
+  // Override applyFilters to reset to page 1 and re-paginate
+  var _origApply = applyFilters;
+  applyFilters = function() {
+    _origApply();
+    currentPage = 1;
+    renderPage();
+  };
+
+  // Pagination button handlers
+  document.getElementById('btn-first').addEventListener('click', function() {
+    currentPage = 1; renderPage();
+    document.getElementById('screener-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('btn-prev').addEventListener('click', function() {
+    if (currentPage > 1) { currentPage--; renderPage(); }
+    document.getElementById('screener-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('btn-next').addEventListener('click', function() {
+    currentPage++; renderPage();
+    document.getElementById('screener-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('btn-last').addEventListener('click', function() {
+    currentPage = Math.ceil(getVisibleRows().length / pageSize);
+    renderPage();
+    document.getElementById('screener-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('page-size-select').addEventListener('change', function() {
+    pageSize    = parseInt(this.value, 10);
+    currentPage = 1;
+    renderPage();
+  });
+
+  // Initial render
+  renderPage();
+
 })();
 </script>
 </body>
