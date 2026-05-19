@@ -377,6 +377,196 @@
   .sig-cycle-btn[data-state="BUY"]  { background: rgba(0,224,150,.18); color: var(--green); border-color: rgba(0,224,150,.5); }
   .sig-cycle-btn[data-state="SELL"] { background: rgba(255,77,109,.15); color: var(--red);   border-color: rgba(255,77,109,.5); }
   .sig-cycle-btn[data-state="AVOID"]{ background: rgba(58,63,82,.4);   color: var(--dim);   border-color: rgba(58,63,82,.8); }
+
+  /* ══ 1. HIGH confidence row highlight ══ */
+  tbody tr[data-conf="HIGH"][data-setup$="_bull"] { border-left: 3px solid var(--green); }
+  tbody tr[data-conf="HIGH"][data-setup$="_bear"] { border-left: 3px solid var(--red);   }
+  tbody tr[data-conf="HIGH"][data-setup="accumulation"] { border-left: 3px solid var(--green); }
+  tbody tr[data-conf="HIGH"][data-setup="distribution"] { border-left: 3px solid var(--red);   }
+
+  /* ══ 2. Sticky first column (ticker) ══ */
+  tbody td:first-child,
+  thead th:first-child {
+    position: sticky;
+    left: 0;
+    background: var(--bg);
+    z-index: 3;
+    box-shadow: 2px 0 6px rgba(0,0,0,.4);
+  }
+  tbody tr:hover td:first-child { background: var(--surface); }
+
+  /* ══ 3. Column visibility toggle ══ */
+  .col-toggle-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .col-toggle-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    align-self: center;
+    margin-right: 4px;
+  }
+  .col-toggle-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    min-height: 26px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--bg);
+    cursor: pointer;
+    transition: all .12s;
+    font-weight: 600;
+  }
+  .col-toggle-btn.hidden-group {
+    background: transparent;
+    color: var(--dim);
+  }
+  .col-toggle-btn:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+
+  /* ══ 5. Tap-to-expand row detail card ══ */
+  .row-detail {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 2px solid var(--accent);
+    border-radius: 12px 12px 0 0;
+    z-index: 100;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 16px 20px 32px;
+    box-shadow: 0 -8px 32px rgba(0,0,0,.6);
+    transition: transform .25s ease;
+  }
+  .row-detail.open { display: block; }
+  .row-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .row-detail-ticker {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .row-detail-close {
+    font-family: var(--mono);
+    font-size: 18px;
+    background: transparent;
+    border: none;
+    color: var(--dim);
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+  }
+  .row-detail-close:hover { color: var(--text); }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+  }
+  .detail-item { display: flex; flex-direction: column; gap: 2px; }
+  .detail-item-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dim);
+  }
+  .detail-item-value {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text);
+  }
+  .detail-signals {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-top: 12px;
+  }
+  .detail-signal-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .detail-signal-cell .detail-item-label { text-align: center; }
+  .detail-yf-link {
+    display: block;
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 8px 16px;
+    text-align: center;
+  }
+  .row-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 99;
+  }
+  .row-overlay.open { display: block; }
+  tbody tr { cursor: pointer; }
+
+  /* ══ 7. Quick filter presets ══ */
+  .presets-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .preset-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    align-self: center;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+  .preset-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    min-height: 28px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    transition: all .12s;
+    white-space: nowrap;
+  }
+  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .preset-btn.active { background: var(--accent2); border-color: var(--accent2); color: #fff; font-weight: 600; }
+
+  /* ══ 9. Active filter count badges ══ */
+  .section-title .filter-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    background: var(--accent2);
+    color: #fff;
+    border-radius: 8px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+    display: none;
+  }
+  .section-title .filter-badge.visible { display: inline; }
 </style>
 </head>
 <body>
@@ -386,7 +576,7 @@
 
 <header role="banner">
   <h1>⬡ STOCK SCREENER</h1>
-  <span class="meta">Generated: 2026-05-19 17:31:08</span>
+  <span class="meta" id="gen-time">Generated: 2026-05-19 17:31:08</span>
   <span class="count"><span id="visible-count">1677</span> / 1677 symbols</span>
 </header>
 
@@ -394,7 +584,7 @@
 
   <!-- Asset type + source -->
   <div class="controls-section">
-    <div class="section-title" id="lbl-asset">Asset Filters</div>
+    <div class="section-title" id="lbl-asset">Asset Filters<span class="filter-badge" id="badge-asset"></span></div>
     <div class="section-body">
     <div class="control-row">
       <span class="control-label">Type</span>
@@ -423,7 +613,7 @@
 
   <!-- Setup filters -->
   <div class="controls-section">
-    <div class="section-title" id="lbl-setup">Setup &amp; Confidence Filter</div>
+    <div class="section-title" id="lbl-setup">Setup &amp; Confidence<span class="filter-badge" id="badge-setup"></span></div>
     <div class="section-body">
     <div class="control-row">
       <span class="control-label">Pattern</span>
@@ -454,7 +644,7 @@
 
   <!-- Signal filters -->
   <div class="controls-section">
-    <div class="section-title" id="lbl-signals">Signal Filters — AND logic across all rows</div>
+    <div class="section-title" id="lbl-signals">Signal Filters<span class="filter-badge" id="badge-signals"></span></div>
     <div class="section-body" role="group" aria-labelledby="lbl-signals">
       <div class="sig-cycle-row">
         <button class="sig-cycle-btn" data-sig-key="today" data-state="ALL">Today: ALL</button><button class="sig-cycle-btn" data-sig-key="week" data-state="ALL">Wk: ALL</button><button class="sig-cycle-btn" data-sig-key="d5" data-state="ALL">5D: ALL</button><button class="sig-cycle-btn" data-sig-key="month" data-state="ALL">Mo: ALL</button><button class="sig-cycle-btn" data-sig-key="m6" data-state="ALL">6Mo: ALL</button><button class="sig-cycle-btn" data-sig-key="ytd" data-state="ALL">YTD: ALL</button><button class="sig-cycle-btn" data-sig-key="last_year" data-state="ALL">1Yr: ALL</button>
@@ -472,6 +662,22 @@
   </div>
 
 </nav>
+
+<div class="presets-bar" role="toolbar" aria-label="Quick filter presets">
+  <span class="preset-label">Presets</span>
+  <button class="preset-btn" data-preset="strong-bull">⚡ Strong Buy</button>
+  <button class="preset-btn" data-preset="strong-bear">⚡ Strong Sell</button>
+  <button class="preset-btn" data-preset="pullback">↩ Pullback ↑</button>
+  <button class="preset-btn" data-preset="breakout">🚀 Breakout</button>
+  <button class="preset-btn" data-preset="mean-rev">↔ Mean Rev</button>
+  <button class="preset-btn" data-preset="clear">✕ Clear</button>
+</div>
+<div class="col-toggle-bar" role="toolbar" aria-label="Show or hide column groups">
+  <span class="col-toggle-label">Columns</span>
+  <button class="col-toggle-btn" data-group="info">Info</button>
+  <button class="col-toggle-btn" data-group="tech">Technicals</button>
+  <button class="col-toggle-btn" data-group="signals">Signals</button>
+</div>
 
 <main>
 <div class="table-wrap">
@@ -2181,6 +2387,22 @@
 </table>
 <div id="no-results" role="status">No symbols match the current filters.</div>
 </div>
+
+<div class="row-overlay" id="row-overlay"></div>
+<div class="row-detail" id="row-detail" role="dialog" aria-modal="true" aria-label="Symbol detail">
+  <div class="row-detail-header">
+    <div>
+      <div class="row-detail-ticker" id="detail-ticker">—</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:2px" id="detail-label">—</div>
+    </div>
+    <button class="row-detail-close" id="detail-close" aria-label="Close detail">✕</button>
+  </div>
+  <div class="detail-grid" id="detail-grid"></div>
+  <div style="margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;">Signals</div>
+  <div class="detail-signals" id="detail-signals"></div>
+  <a class="detail-yf-link" id="detail-yf" href="#" target="_blank" rel="noopener">Open in Yahoo Finance ↗</a>
+</div>
+
 </main>
 
 <div class="pagination" id="pagination" role="navigation" aria-label="Results pagination">
@@ -2452,6 +2674,276 @@
 
   // ── Init ──────────────────────────────────────────────────────────────────
   applyFilters();
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // USABILITY IMPROVEMENTS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── 2. Column group visibility toggle ────────────────────────────────────
+  var COL_GROUPS = {
+    info:    [1,2,3,4,5,6,7,8,9],   // name,type,source,setup,conf,price,mktcap,$vol,atr
+    tech:    [10,11,12,13,14,15,16], // rsi,>ma200,mastack,macd,vol×,struct,entry
+    signals: [17,18,19,20,21,22,23]  // today..last_year
+  };
+  var groupVisible = { info:true, tech:true, signals:true };
+
+  function applyColVisibility() {
+    Object.keys(COL_GROUPS).forEach(function(group) {
+      var visible = groupVisible[group];
+      COL_GROUPS[group].forEach(function(colIdx) {
+        document.querySelectorAll(
+          'thead th:nth-child(' + (colIdx+1) + '), tbody td:nth-child(' + (colIdx+1) + ')'
+        ).forEach(function(el) {
+          el.style.display = visible ? '' : 'none';
+        });
+      });
+    });
+  }
+
+  document.querySelectorAll('.col-toggle-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var group = btn.getAttribute('data-group');
+      groupVisible[group] = !groupVisible[group];
+      btn.classList.toggle('hidden-group', !groupVisible[group]);
+      applyColVisibility();
+    });
+  });
+
+  // ── 4. Sort memory — restore sort after filter change ────────────────────
+  var savedSortCol = null, savedSortDir = 1;
+  var _origSort = null; // captured below after sort handler setup
+
+  // Wrap applyFilters to re-apply sort after filtering
+  var _filterOnly = applyFilters;
+  applyFilters = function() {
+    _filterOnly();
+    if (savedSortCol) {
+      var th = document.querySelector('thead th[data-col="' + savedSortCol + '"]');
+      if (th) {
+        // Re-sort without changing savedSortDir
+        var matched = getMatchedRows();
+        var sorted  = matched.sort(function(a,b) {
+          var va = parseCell(a, savedSortCol), vb = parseCell(b, savedSortCol);
+          if (va === null) return 1; if (vb === null) return -1;
+          return va < vb ? -savedSortDir : va > vb ? savedSortDir : 0;
+        });
+        sorted.forEach(function(r) { tbody.appendChild(r); });
+        renderPage();
+      }
+    }
+  };
+
+  // Intercept sort clicks to save sort state
+  document.querySelectorAll('thead th[data-col]').forEach(function(th) {
+    th.addEventListener('click', function() {
+      savedSortCol = th.getAttribute('data-col');
+      savedSortDir = (sortCol === savedSortCol) ? -sortDir : 1;
+    }, true); // capture phase — fires before the existing sort handler
+  });
+
+  // ── 5. Tap row to expand detail card ─────────────────────────────────────
+  var COL_NAMES = [
+    'Ticker','Name','Type','Source','Setup','Confidence','Price','Mkt Cap','$Vol 3mo','ATR%',
+    'RSI','>MA200','MA Stack','MACD','Vol×','Structure','Entry ↑',
+    'Today','This Wk','5 Days','This Mo','6 Months','YTD','1 Year'
+  ];
+  var SIG_LABELS_SHORT = {
+    today:'Today', week:'Wk', d5:'5D', month:'Mo', m6:'6Mo', ytd:'YTD', last_year:'1Yr'
+  };
+
+  var overlay   = document.getElementById('row-overlay');
+  var detailPanel = document.getElementById('row-detail');
+  var SIG_KEYS_LOCAL = ['today','week','d5','month','m6','ytd','last_year'];
+
+  function openDetail(row) {
+    var cells = Array.from(row.querySelectorAll('td'));
+    var ticker = cells[0] ? cells[0].textContent.trim() : '—';
+    var label  = cells[1] ? cells[1].textContent.trim() : '—';
+    var yfHref = cells[0] ? (cells[0].querySelector('a') || {}).href || '#' : '#';
+
+    document.getElementById('detail-ticker').textContent = ticker;
+    document.getElementById('detail-label').textContent  = label;
+    document.getElementById('detail-yf').href = yfHref;
+
+    // Info grid — cols 2-16 (skip ticker, name)
+    var grid = document.getElementById('detail-grid');
+    grid.innerHTML = '';
+    [[2,'Type'],[3,'Source'],[4,'Setup'],[5,'Conf'],[6,'Price'],[7,'Mkt Cap'],
+     [8,'$Vol 3mo'],[9,'ATR%'],[10,'RSI'],[11,'>MA200'],[12,'MA Stack'],
+     [13,'MACD'],[14,'Vol×'],[15,'Structure'],[16,'Entry ↑']
+    ].forEach(function(pair) {
+      var val = cells[pair[0]] ? cells[pair[0]].innerHTML : '—';
+      var div = document.createElement('div');
+      div.className = 'detail-item';
+      div.innerHTML = '<span class="detail-item-label">' + pair[1] + '</span>'
+                    + '<span class="detail-item-value">' + val + '</span>';
+      grid.appendChild(div);
+    });
+
+    // Signal row
+    var sigRow = document.getElementById('detail-signals');
+    sigRow.innerHTML = '';
+    SIG_KEYS_LOCAL.forEach(function(k, i) {
+      var colIdx = 17 + i;
+      var val = cells[colIdx] ? cells[colIdx].innerHTML : '—';
+      var div = document.createElement('div');
+      div.className = 'detail-signal-cell';
+      div.innerHTML = '<span class="detail-item-label">' + (SIG_LABELS_SHORT[k]||k) + '</span>'
+                    + '<span>' + val + '</span>';
+      sigRow.appendChild(div);
+    });
+
+    overlay.classList.add('open');
+    detailPanel.classList.add('open');
+    document.getElementById('detail-close').focus();
+  }
+
+  function closeDetail() {
+    overlay.classList.remove('open');
+    detailPanel.classList.remove('open');
+  }
+
+  document.getElementById('detail-close').addEventListener('click', closeDetail);
+  overlay.addEventListener('click', closeDetail);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDetail();
+  });
+
+  tbody.addEventListener('click', function(e) {
+    // Don't open detail if clicking the Yahoo Finance link
+    if (e.target.tagName === 'A') return;
+    var row = e.target.closest('tr');
+    if (row && row.parentNode === tbody) openDetail(row);
+  });
+
+  // ── 6. Last updated timestamp ─────────────────────────────────────────────
+  (function() {
+    var el = document.getElementById('gen-time');
+    if (el) {
+      var raw = el.textContent.replace('Generated: ', '').trim();
+      var d   = new Date(raw);
+      if (!isNaN(d)) {
+        var diff = Math.round((Date.now() - d) / 60000);
+        var ago  = diff < 60 ? diff + 'm ago'
+                 : diff < 1440 ? Math.round(diff/60) + 'h ago'
+                 : Math.round(diff/1440) + 'd ago';
+        el.textContent = 'Generated: ' + raw + '  (' + ago + ')';
+      }
+    }
+  })();
+
+  // ── 7. Quick filter presets ───────────────────────────────────────────────
+  var PRESETS = {
+    'strong-bull': { setup:'ALL', conf:'HIGH', sigs:{ today:'BUY', week:'BUY' } },
+    'strong-bear': { setup:'ALL', conf:'HIGH', sigs:{ today:'SELL', week:'SELL' } },
+    'pullback':    { setup:'pullback_bull', conf:'ALL', sigs:{} },
+    'breakout':    { setup:'breakout_bull', conf:'ALL', sigs:{} },
+    'mean-rev':    { setup:'mean_rev_bull', conf:'ALL', sigs:{} },
+    'clear':       null
+  };
+
+  document.querySelectorAll('.preset-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      // Deactivate all presets
+      document.querySelectorAll('.preset-btn').forEach(function(b) { b.classList.remove('active'); });
+
+      var key = btn.getAttribute('data-preset');
+      var preset = PRESETS[key];
+
+      // Reset all first
+      activeQt = 'ALL'; activeSrc = 'ALL'; activeSetup = 'ALL'; activeConf = 'ALL';
+      SIG_KEYS.forEach(function(k) { activeSig[k] = 'ALL'; });
+      document.querySelectorAll('.btn[data-filter-qt]').forEach(function(b)    { b.classList.toggle('active', b.getAttribute('data-filter-qt')    === 'ALL'); });
+      document.querySelectorAll('.btn[data-filter-src]').forEach(function(b)   { b.classList.toggle('active', b.getAttribute('data-filter-src')   === 'ALL'); });
+      document.querySelectorAll('.btn[data-filter-setup]').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-filter-setup') === 'ALL'); });
+      document.querySelectorAll('.btn[data-filter-conf]').forEach(function(b)  { b.classList.toggle('active', b.getAttribute('data-filter-conf')  === 'ALL'); });
+      document.querySelectorAll('.sig-cycle-btn').forEach(function(b) {
+        var labels = { today:'Today', week:'Wk', d5:'5D', month:'Mo', m6:'6Mo', ytd:'YTD', last_year:'1Yr' };
+        b.setAttribute('data-state','ALL');
+        b.textContent = (labels[b.getAttribute('data-sig-key')]||b.getAttribute('data-sig-key')) + ': ALL';
+      });
+
+      if (!preset) { applyFilters(); return; }
+
+      btn.classList.add('active');
+
+      // Apply preset
+      if (preset.setup !== 'ALL') {
+        activeSetup = preset.setup;
+        document.querySelectorAll('.btn[data-filter-setup]').forEach(function(b) {
+          b.classList.toggle('active', b.getAttribute('data-filter-setup') === preset.setup);
+        });
+      }
+      if (preset.conf !== 'ALL') {
+        activeConf = preset.conf;
+        document.querySelectorAll('.btn[data-filter-conf]').forEach(function(b) {
+          b.classList.toggle('active', b.getAttribute('data-filter-conf') === preset.conf);
+        });
+      }
+      Object.keys(preset.sigs).forEach(function(k) {
+        activeSig[k] = preset.sigs[k];
+        var cycleBtn = document.querySelector('.sig-cycle-btn[data-sig-key="' + k + '"]');
+        if (cycleBtn) {
+          var labels = { today:'Today', week:'Wk', d5:'5D', month:'Mo', m6:'6Mo', ytd:'YTD', last_year:'1Yr' };
+          cycleBtn.setAttribute('data-state', preset.sigs[k]);
+          cycleBtn.textContent = (labels[k]||k) + ': ' + preset.sigs[k];
+        }
+      });
+
+      applyFilters();
+    });
+  });
+
+  // ── 9. Active filter count badges ────────────────────────────────────────
+  function updateFilterBadges() {
+    // Asset badge
+    var assetCount = (activeQt !== 'ALL' ? 1 : 0) + (activeSrc !== 'ALL' ? 1 : 0);
+    var ab = document.getElementById('badge-asset');
+    if (ab) { ab.textContent = assetCount; ab.classList.toggle('visible', assetCount > 0); }
+
+    // Setup badge
+    var setupCount = (activeSetup !== 'ALL' ? 1 : 0) + (activeConf !== 'ALL' ? 1 : 0);
+    var sb = document.getElementById('badge-setup');
+    if (sb) { sb.textContent = setupCount; sb.classList.toggle('visible', setupCount > 0); }
+
+    // Signals badge
+    var sigCount = SIG_KEYS.filter(function(k) { return activeSig[k] !== 'ALL'; }).length;
+    var sigb = document.getElementById('badge-signals');
+    if (sigb) { sigb.textContent = sigCount; sigb.classList.toggle('visible', sigCount > 0); }
+  }
+
+  // Patch applyFilters to also update badges
+  var _withBadges = applyFilters;
+  applyFilters = function() { _withBadges(); updateFilterBadges(); };
+  updateFilterBadges();
+
+  // ── 10. Pull to refresh ───────────────────────────────────────────────────
+  var ptStartY = 0, ptPulling = false;
+  var ptIndicator = document.createElement('div');
+  ptIndicator.style.cssText = 'position:fixed;top:-40px;left:50%;transform:translateX(-50%);'
+    + 'background:var(--accent);color:var(--bg);font-family:var(--mono);font-size:11px;'
+    + 'padding:6px 16px;border-radius:0 0 8px 8px;transition:top .2s;z-index:200;';
+  ptIndicator.textContent = '↓ Pull to refresh';
+  document.body.appendChild(ptIndicator);
+
+  document.addEventListener('touchstart', function(e) {
+    if (window.scrollY === 0) { ptStartY = e.touches[0].clientY; ptPulling = true; }
+  }, { passive: true });
+  document.addEventListener('touchmove', function(e) {
+    if (!ptPulling) return;
+    var dy = e.touches[0].clientY - ptStartY;
+    if (dy > 60) { ptIndicator.style.top = '0px'; ptIndicator.textContent = '↑ Release to refresh'; }
+    else if (dy > 10) { ptIndicator.style.top = '0px'; ptIndicator.textContent = '↓ Pull to refresh'; }
+    else { ptIndicator.style.top = '-40px'; }
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    if (!ptPulling) return;
+    ptPulling = false;
+    var dy = e.changedTouches[0].clientY - ptStartY;
+    if (dy > 60) { ptIndicator.textContent = 'Refreshing…'; setTimeout(function() { location.reload(); }, 300); }
+    else { ptIndicator.style.top = '-40px'; }
+  });
+
 })();
 </script>
 </body>
