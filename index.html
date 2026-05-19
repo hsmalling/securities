@@ -353,6 +353,30 @@
     min-height: 40px;
   }
   .page-size-select:focus { outline: 2px solid var(--accent); }
+
+  /* ── Signal cycle buttons ── */
+  .sig-cycle-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px 0;
+  }
+  .sig-cycle-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 8px;
+    min-height: 28px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .12s;
+  }
+  .sig-cycle-btn[data-state="BUY"]  { background: rgba(0,224,150,.18); color: var(--green); border-color: rgba(0,224,150,.5); }
+  .sig-cycle-btn[data-state="SELL"] { background: rgba(255,77,109,.15); color: var(--red);   border-color: rgba(255,77,109,.5); }
+  .sig-cycle-btn[data-state="AVOID"]{ background: rgba(58,63,82,.4);   color: var(--dim);   border-color: rgba(58,63,82,.8); }
 </style>
 </head>
 <body>
@@ -431,14 +455,10 @@
   <!-- Signal filters -->
   <div class="controls-section">
     <div class="section-title" id="lbl-signals">Signal Filters — AND logic across all rows</div>
-    <div class="section-body">
-    <div class="control-row"><span class="control-label sig-label">Today</span><button class="btn sig-btn active" data-sig-key="today" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="today" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="today" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="today" data-sig-val="AVOID">AVOID</button></div>
-<div class="control-row"><span class="control-label sig-label">This Wk</span><button class="btn sig-btn active" data-sig-key="week" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="week" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="week" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="week" data-sig-val="AVOID">AVOID</button></div>
-<div class="control-row"><span class="control-label sig-label">5 Days</span><button class="btn sig-btn active" data-sig-key="d5" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="d5" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="d5" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="d5" data-sig-val="AVOID">AVOID</button></div>
-<div class="control-row"><span class="control-label sig-label">This Mo</span><button class="btn sig-btn active" data-sig-key="month" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="month" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="month" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="month" data-sig-val="AVOID">AVOID</button></div>
-<div class="control-row"><span class="control-label sig-label">6 Months</span><button class="btn sig-btn active" data-sig-key="m6" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="m6" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="m6" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="m6" data-sig-val="AVOID">AVOID</button></div>
-<div class="control-row"><span class="control-label sig-label">YTD</span><button class="btn sig-btn active" data-sig-key="ytd" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="ytd" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="ytd" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="ytd" data-sig-val="AVOID">AVOID</button></div>
-<div class="control-row"><span class="control-label sig-label">1 Year</span><button class="btn sig-btn active" data-sig-key="last_year" data-sig-val="ALL">All</button><button class="btn sig-btn sig-buy-btn" data-sig-key="last_year" data-sig-val="BUY">BUY</button><button class="btn sig-btn sig-sell-btn" data-sig-key="last_year" data-sig-val="SELL">SELL</button><button class="btn sig-btn sig-avoid-btn" data-sig-key="last_year" data-sig-val="AVOID">AVOID</button></div>
+    <div class="section-body" role="group" aria-labelledby="lbl-signals">
+      <div class="sig-cycle-row">
+        <button class="sig-cycle-btn" data-sig-key="today" data-state="ALL">Today: ALL</button><button class="sig-cycle-btn" data-sig-key="week" data-state="ALL">Wk: ALL</button><button class="sig-cycle-btn" data-sig-key="d5" data-state="ALL">5D: ALL</button><button class="sig-cycle-btn" data-sig-key="month" data-state="ALL">Mo: ALL</button><button class="sig-cycle-btn" data-sig-key="m6" data-state="ALL">6Mo: ALL</button><button class="sig-cycle-btn" data-sig-key="ytd" data-state="ALL">YTD: ALL</button><button class="sig-cycle-btn" data-sig-key="last_year" data-state="ALL">1Yr: ALL</button>
+      </div>
     </div>
   </div>
 
@@ -2364,12 +2384,17 @@
       btn.classList.add('active'); activeConf = btn.getAttribute('data-filter-conf'); applyFilters();
     });
   });
-  document.querySelectorAll('.sig-btn').forEach(function(btn) {
+  document.querySelectorAll('.sig-cycle-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      var key = btn.getAttribute('data-sig-key');
-      var val = btn.getAttribute('data-sig-val');
-      document.querySelectorAll('.sig-btn[data-sig-key="' + key + '"]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active'); activeSig[key] = val; applyFilters();
+      var key   = btn.getAttribute('data-sig-key');
+      var state = btn.getAttribute('data-state');
+      var cycle = { 'ALL':'BUY', 'BUY':'SELL', 'SELL':'AVOID', 'AVOID':'ALL' };
+      var next  = cycle[state] || 'ALL';
+      var labels = { today:'Today', week:'Wk', d5:'5D', month:'Mo', m6:'6Mo', ytd:'YTD', last_year:'1Yr' };
+      btn.setAttribute('data-state', next);
+      btn.textContent = (labels[key] || key) + ': ' + next;
+      activeSig[key] = next;
+      applyFilters();
     });
   });
 
@@ -2387,7 +2412,12 @@
     document.querySelectorAll('.btn[data-filter-src]').forEach(function(b)   { b.classList.toggle('active', b.getAttribute('data-filter-src')   === 'ALL'); });
     document.querySelectorAll('.btn[data-filter-setup]').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-filter-setup') === 'ALL'); });
     document.querySelectorAll('.btn[data-filter-conf]').forEach(function(b)  { b.classList.toggle('active', b.getAttribute('data-filter-conf')  === 'ALL'); });
-    document.querySelectorAll('.sig-btn').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-sig-val') === 'ALL'); });
+    document.querySelectorAll('.sig-cycle-btn').forEach(function(b) {
+      var labels = { today:'Today', week:'Wk', d5:'5D', month:'Mo', m6:'6Mo', ytd:'YTD', last_year:'1Yr' };
+      var key = b.getAttribute('data-sig-key');
+      b.setAttribute('data-state','ALL');
+      b.textContent = (labels[key]||key) + ': ALL';
+    });
     applyFilters();
   });
 
