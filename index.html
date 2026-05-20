@@ -2824,20 +2824,24 @@
     if (row && row.parentNode === tbody) openDetail(row);
   });
 
-  // ── 6. Last updated timestamp ─────────────────────────────────────────────
+  // ── 6. Last updated timestamp — live ticker, Safari-safe ─────────────────
   (function() {
     var el = document.getElementById('gen-time');
-    if (el) {
-      var raw = el.textContent.replace('Generated: ', '').trim();
-      var d   = new Date(raw);
-      if (!isNaN(d)) {
-        var diff = Math.round((Date.now() - d) / 60000);
-        var ago  = diff < 60 ? diff + 'm ago'
-                 : diff < 1440 ? Math.round(diff/60) + 'h ago'
-                 : Math.round(diff/1440) + 'd ago';
-        el.textContent = 'Generated: ' + raw + '  (' + ago + ')';
-      }
+    if (!el) return;
+    var raw  = el.textContent.replace('Generated: ', '').trim().replace(' ', 'T');
+    var d    = new Date(raw);
+    if (isNaN(d)) return;
+    var base = el.textContent.split('(')[0].trim();
+    function updateAgo() {
+      var diff = Math.round((Date.now() - d) / 60000);
+      var ago  = diff < 1    ? 'just now'
+               : diff < 60   ? diff + 'm ago'
+               : diff < 1440 ? Math.round(diff / 60) + 'h ago'
+               :                Math.round(diff / 1440) + 'd ago';
+      el.textContent = base + '  (' + ago + ')';
     }
+    updateAgo();
+    setInterval(updateAgo, 60000);
   })();
 
   // ── 7. Quick filter presets ───────────────────────────────────────────────
