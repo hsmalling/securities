@@ -582,7 +582,7 @@
 
 <header role="banner">
   <h1>⬡ STOCK SCREENER</h1>
-  <span class="meta" id="gen-time">Generated: 2026-05-19 17:31:08</span>
+  <span class="meta" id="gen-time" data-iso="2026-05-19T17:31:08+00:00">Generated: 2026-05-19 17:31:08</span>
   <span class="count"><span id="visible-count">1677</span> / 1677 symbols</span>
 </header>
 
@@ -2826,10 +2826,10 @@
 
   // ── 6. Last updated timestamp — live ticker, Safari-safe ─────────────────
   (function() {
-    var el = document.getElementById('gen-time');
+    var el   = document.getElementById('gen-time');
     if (!el) return;
-    var raw  = el.textContent.replace('Generated: ', '').trim().replace(' ', 'T');
-    var d    = new Date(raw);
+    var iso  = el.getAttribute('data-iso') || el.textContent.replace('Generated: ', '').trim().replace(' ', 'T');
+    var d    = new Date(iso);
     if (isNaN(d)) return;
     var base = el.textContent.split('(')[0].trim();
     function updateAgo() {
