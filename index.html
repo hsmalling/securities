@@ -553,6 +553,12 @@
   }
   .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
   .preset-btn.active { background: var(--accent2); border-color: var(--accent2); color: #fff; font-weight: 600; }
+  .preset-btn[data-preset="best-bull"], .preset-btn[data-preset="best-bear"] {
+    border-color: var(--amber); color: var(--amber);
+  }
+  .preset-btn[data-preset="best-bull"].active, .preset-btn[data-preset="best-bear"].active {
+    background: var(--amber); border-color: var(--amber); color: var(--bg);
+  }
 
   /* ══ 9. Active filter count badges ══ */
   .section-title .filter-badge {
@@ -670,6 +676,8 @@
   <button class="preset-btn" data-preset="pullback">↩ Pullback ↑</button>
   <button class="preset-btn" data-preset="breakout">🚀 Breakout</button>
   <button class="preset-btn" data-preset="mean-rev">↔ Mean Rev</button>
+  <button class="preset-btn" data-preset="best-bull">🎯 Best Odds ↑</button>
+  <button class="preset-btn" data-preset="best-bear">🎯 Best Odds ↓</button>
   <button class="preset-btn" data-preset="clear">✕ Clear</button>
 </div>
 <div class="col-toggle-bar" role="toolbar" aria-label="Show or hide column groups">
@@ -2839,6 +2847,8 @@
     'pullback':    { setup:'pullback_bull', conf:'ALL', sigs:{} },
     'breakout':    { setup:'breakout_bull', conf:'ALL', sigs:{} },
     'mean-rev':    { setup:'mean_rev_bull', conf:'ALL', sigs:{} },
+    'best-bull':   { setup:'ALL', conf:'HIGH', sigs:{ today:'BUY',  week:'BUY',  month:'BUY'  } },
+    'best-bear':   { setup:'ALL', conf:'HIGH', sigs:{ today:'SELL', week:'SELL', month:'SELL' } },
     'clear':       null
   };
 
